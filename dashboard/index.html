@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Token Radar — pre-token protocols ranked by implied value</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<a class="skip" href="#board">Skip to the board</a>
+<header class="top">
+  <div class="brand">
+    <span class="pulse" aria-hidden="true"></span>
+    <div>
+      <h1>TOKEN RADAR</h1>
+      <p class="tag">Pre-token protocols, ranked by implied value — model radar-2</p>
+    </div>
+  </div>
+  <dl class="stats" id="stats"></dl>
+</header>
+<nav class="tabs" aria-label="Views">
+  <button type="button" data-tab="board" class="active" aria-current="page">Board</button>
+  <button type="button" data-tab="live">Live tokens</button>
+  <button type="button" data-tab="method">Method &amp; sandbox</button>
+</nav>
+<main id="board" tabindex="-1">
+  <section id="view-board" class="view">
+    <div class="toolbar" role="search">
+      <label>Search <input id="q" type="search" placeholder="name or slug" autocomplete="off"></label>
+      <label>Category <select id="cat"><option value="">All categories</option></select></label>
+      <label>Chain <select id="chain"><option value="">All chains</option></select></label>
+      <label class="check"><input id="wl" type="checkbox"> Watchlist only</label>
+      <span class="count" id="count"></span>
+    </div>
+    <div id="detail" class="detail" hidden></div>
+    <div class="tablewrap">
+      <table id="boardtable">
+        <thead>
+          <tr>
+            <th data-sort="rank" aria-sort="descending">#</th>
+            <th data-sort="name">Protocol</th>
+            <th data-sort="category">Category</th>
+            <th data-sort="chains">Chains</th>
+            <th data-sort="tvl_usd" class="num">TVL</th>
+            <th data-sort="change_7d" class="num">7d</th>
+            <th data-sort="age_days" class="num">Age</th>
+            <th data-sort="implied_value_usd" class="num">Implied value</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <p class="hint">Click a row for its model breakdown and farm plan. Click a column header to sort. Implied values are a model estimate from the snapshot, not a price.</p>
+  </section>
+  <section id="view-live" class="view" hidden>
+    <h2>Live tokens — the market's own values</h2>
+    <p class="lede">These protocols already trade, so the board never ranks them: their market cap is the market's own verdict, shown here for comparison against the pre-token board.</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Protocol</th><th>Category</th><th>Chains</th><th class="num">TVL</th><th class="num">Market cap</th><th class="num">MCap / TVL</th><th class="num">7d</th></tr></thead>
+        <tbody id="liverows"></tbody>
+      </table>
+    </div>
+  </section>
+  <section id="view-method" class="view" hidden>
+    <h2>How the radar scores a protocol</h2>
+    <p class="lede">Implied value = TVL &times; category multiple &times; growth &times; launch &times; token-share &times; chains. Every input comes from the snapshot itself: no protocol name is ever special-cased.</p>
+    <ol class="factors">
+      <li><strong>Category multiple.</strong> The median market-cap-to-TVL ratio of the tokenized protocols in the same category (at least 5 priced protocols, else the snapshot-wide median of <span id="gm">—</span>). Dexs price near <span id="gm-dex">—</span>&times; TVL; liquid staking near <span id="gm-ls">—</span>&times;.</li>
+      <li><strong>Growth.</strong> The 7-day TVL change, clamped to &minus;60%..+120%, at half weight: 1 + growth &times; 0.5.</li>
+      <li><strong>Launch.</strong> By age with no token: under 90 days 0.70, 90&ndash;730 days 1.00 (the prime window), 730&ndash;1460 days 0.80, over 1460 days 0.55, unknown age 0.80.</li>
+      <li><strong>Token-share.</strong> 0.70 + 0.60 &times; the share of the category's protocols that already carry a token: categories where launching is the norm score higher.</li>
+      <li><strong>Chains.</strong> 1 + 0.02 per extra chain, up to 1.10.</li>
+    </ol>
+    <h3>Model sandbox — change the model, re-rank the board</h3>
+    <div class="sandbox">
+      <label>Growth weight <input id="sb-growth" type="number" min="0" max="1" step="0.05" value="0.5"></label>
+      <label>Prime-window factor <input id="sb-prime" type="number" min="0.5" max="1.5" step="0.05" value="1"></label>
+      <label>Multiple scale <input id="sb-scale" type="number" min="0.5" max="2" step="0.1" value="1"></label>
+      <button type="button" id="sb-apply">Re-rank</button>
+      <button type="button" id="sb-reset">Reset</button>
+    </div>
+    <p class="count" id="sb-note">The sandbox re-ranks in the page only; the board file is untouched.</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>#</th><th>Protocol</th><th class="num">TVL</th><th class="num">Implied value</th><th class="num">Base rank</th></tr></thead>
+        <tbody id="sb-rows"></tbody>
+      </table>
+    </div>
+    <h3>Category multiples from this snapshot</h3>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Category</th><th class="num">Multiple</th><th class="num">Token share</th><th class="num">Priced protocols</th></tr></thead>
+        <tbody id="catrows"></tbody>
+      </table>
+    </div>
+    <h3>What the radar leaves out, and why</h3>
+    <p class="lede">Centralised exchanges never make the board (their token, if one ever comes, is a corporate decision, not a farmable launch), and versioned pools such as a protocol's V3 are pools of another protocol, not a launch of their own. Protocols listed with no token for over four years score low on launch likelihood — they have had their window.</p>
+  </section>
+</main>
+<footer>
+  <p id="source"></p>
+  <p>Snapshot 2026-11-14, DefiLlama protocol index. Model radar-2. Not financial advice: an implied value is a ranking device, not a price target.</p>
+</footer>
+<script src="../data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
